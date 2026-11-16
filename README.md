@@ -44,4 +44,26 @@ Os testes automatizados não substituem validação com o parceiro, medição de
 
 ## Git e portabilidade
 
-O repositório inclui código, configurações, testes e arquivo de dependências. `node_modules`, `dist` e caches não devem ser enviados ao Git. A configuração `.openai/hosting.json` é específica da prévia e pode ser removida em uma cópia para outra hospedagem. Para publicar em subdiretório, configure o base href na geração.
+O repositório inclui código, configurações, testes e arquivo de dependências. `node_modules`, `dist` e caches não devem ser enviados ao Git. Para publicar em subdiretório, configure o base href na geração.
+
+## Verificação manual e critérios de aceite
+
+- Menu: selecionar cada operação e confirmar o formulário correspondente.
+- RF02: custos R$ 25,00, taxas 20%, ganho R$ 10,00 → preço mínimo R$ 43,75.
+- RF03: mesmos custos/taxas, preço R$ 30,00 → falta R$ 1,00; preço R$ 50,00 → sobra R$ 15,00.
+- RF01: rejeitar negativos, texto, mais de duas casas decimais e taxas somando 100% ou mais; ocultar resultado antigo após alterar entradas.
+- RNF04: navegar por Tab/Shift+Tab, ativar com Enter, conferir foco, rótulos e mensagens; ampliar a 200% sem perda de conteúdo. Verificar contraste dos campos e preços longos em tela pequena.
+- Privacidade: valores não devem aparecer na URL, nas requisições nem no armazenamento persistente do navegador.
+- Desempenho planejado: mediana de cinco carregamentos após aquecimento até 5 segundos, cache desativado, rede de 1,6 Mbps / 750 kbps e latência de 150 ms; orçamento de 500 KB.
+- Validação com parceiro: três tarefas sem ajuda direta, tarefa central até 180 segundos e facilidade de uso pelo menos 4 em 5. Registrar resultados reais; esses limites são metas, não resultados obtidos.
+
+## Implantação reproduzível
+
+1. Instale com `npm ci` em Node compatível.
+2. Execute `npm test` e `npm run build`.
+3. Publique o conteúdo de `dist` como arquivos estáticos por HTTPS. Não publique `node_modules` nem credenciais.
+4. No Cloudflare Pages, configure saída `dist`; domínio e credenciais ficam no provedor.
+5. Para subdiretório, use `npm run build -- --base-href /guarushop-calculadora/` e confira os caminhos.
+6. Para conferir o build localmente, use um servidor estático em `dist`, não abertura por `file://`.
+
+Alterações neste repositório não atualizam automaticamente a prévia privada anterior. Uma nova publicação deve utilizar o build do commit da entrega.
