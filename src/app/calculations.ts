@@ -11,20 +11,22 @@ export function parseNumber(raw: string, required=false): number {
   return value;
 }
 export function calculate(s:Simulation):CalculationResult {
+  if (s.mode !== 'minimum' && s.mode !== 'check') throw new Error('Escolha uma operação válida.');
+  const hasCentPrecision = (v:number) => Math.abs(v * 100 - Math.round(v * 100)) <= Number.EPSILON * Math.max(1, Math.abs(v * 100)) * 4;
   const values=[s.product,s.packaging,s.freight,s.fixed,s.other,s.commission,s.taxes];
-  if(values.some(v=>!Number.isFinite(v)||v<0||v>MAX_AMOUNT)) throw new Error('Revise os valores informados.');
+  if(values.some(v=>!Number.isFinite(v)||v<0||v>MAX_AMOUNT||!hasCentPrecision(v))) throw new Error('Revise os valores informados.');
   const totalCosts=(Math.round(s.product*100)+Math.round(s.packaging*100)+Math.round(s.freight*100)+Math.round(s.fixed*100)+Math.round(s.other*100))/100;
   const totalRates=(s.commission+s.taxes)/100;
   if(totalRates>=1) throw new Error('A soma das taxas deve ser menor que 100%. Revise os percentuais.');
   let price:number;
   if(s.mode==='minimum') {
-    if(s.target===undefined||!Number.isFinite(s.target)||s.target<0||s.target>MAX_AMOUNT) throw new Error('Informe um ganho desejado válido.');
+    if(s.target===undefined||!Number.isFinite(s.target)||s.target<0||s.target>MAX_AMOUNT||!hasCentPrecision(s.target)) throw new Error('Informe um ganho desejado válido.');
     const unrounded=(totalCosts+s.target)/(1-totalRates);
     const cents=unrounded*100;
     // Remove apenas o ruído de ponto flutuante próximo de um centavo exato.
     price=Math.ceil(cents-Number.EPSILON*Math.abs(cents)*4)/100;
   } else {
-    if(s.price===undefined||!Number.isFinite(s.price)||s.price<=0||s.price>MAX_AMOUNT) throw new Error('Informe um preço de venda maior que zero.');
+    if(s.price===undefined||!Number.isFinite(s.price)||s.price<=0||s.price>MAX_AMOUNT||!hasCentPrecision(s.price)) throw new Error('Informe um preço de venda maior que zero.');
     price=s.price;
   }
   if(!Number.isFinite(price)||price>MAX_AMOUNT) throw new Error('O resultado ultrapassa o limite de cálculo. Revise os valores e as taxas.');
