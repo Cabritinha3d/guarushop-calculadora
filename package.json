@@ -1,0 +1,28 @@
+{
+  "name": "guarushop-calculadora",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "ng serve",
+    "build": "ng build",
+    "test": "node --experimental-strip-types --test tests/calculations.test.ts"
+  },
+  "dependencies": {
+    "@angular/core": "22.2.6",
+    "@angular/common": "22.2.6",
+    "@angular/compiler": "22.2.6",
+    "@angular/platform-browser": "22.2.6",
+    "@angular/forms": "22.2.6",
+    "rxjs": "~7.8.2",
+    "tslib": "^2.8.1"
+  },
+  "devDependencies": {
+    "@angular/build": "22.2.6",
+    "@angular/cli": "22.2.6",
+    "@angular/compiler-cli": "22.2.6",
+    "typescript": "~6.0.0"
+  },
+  "engines": {
+    "node": ">=22.22.3"
+  }
+}
