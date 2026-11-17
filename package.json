@@ -5,7 +5,9 @@
   "scripts": {
     "start": "ng serve",
     "build": "ng build",
-    "test": "node --experimental-strip-types --test tests/calculations.test.ts"
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "test:unit": "node --experimental-strip-types --test tests/calculations.test.ts",
+    "test:integration": "node --experimental-strip-types --test tests/simulation-flow.integration.test.ts"
   },
   "dependencies": {
     "@angular/core": "22.2.6",

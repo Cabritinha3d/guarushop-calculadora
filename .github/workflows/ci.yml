@@ -1,0 +1,35 @@
+name: CI - Testes e build
+
+on:
+  push:
+    branches: [main, docs/roteiro-validacao]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Testes unitarios, integracao e build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Obter o codigo
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Preparar Node.js 24
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Instalar dependencias do lockfile
+        run: npm ci
+      - name: Testes unitarios (7 casos)
+        run: npm run test:unit
+      - name: Testes de integracao (4 casos)
+        run: npm run test:integration
+      - name: Build de producao Angular
+        run: npm run build
