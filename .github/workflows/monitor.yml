@@ -1,0 +1,79 @@
+name: Monitorar disponibilidade do MVP
+
+on:
+  schedule:
+    - cron: '23 */6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/monitor.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  disponibilidade:
+    name: Verificar pagina e arquivos principais
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verificar disponibilidade HTTPS
+        run: |
+          python3 - <<'PY'
+          import os
+          import time
+          from html.parser import HTMLParser
+          from urllib.parse import urljoin, urlsplit
+          from urllib.request import Request, urlopen
+
+          url = "https://cabritinha3d.github.io/guarushop-calculadora/"
+
+          class Assets(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.paths = []
+              def handle_starttag(self, tag, attrs):
+                  attrs = dict(attrs)
+                  if tag == "script" and attrs.get("src"):
+                      self.paths.append(attrs["src"])
+                  if tag == "link" and attrs.get("rel") == "stylesheet" and attrs.get("href"):
+                      self.paths.append(attrs["href"])
+
+          def fetch(target):
+              request = Request(target, headers={"User-Agent": "Guarushop-Availability-Check"})
+              with urlopen(request, timeout=20) as response:
+                  if response.status != 200:
+                      raise RuntimeError(f"HTTP {response.status}: {target}")
+                  body = response.read()
+                  if not body:
+                      raise RuntimeError(f"Resposta vazia: {target}")
+                  return body
+
+          for attempt in range(1, 4):
+              try:
+                  html = fetch(url).decode("utf-8")
+                  if "<app-root" not in html:
+                      raise RuntimeError("Pagina recebida nao corresponde ao MVP")
+                  assets = Assets()
+                  assets.feed(html)
+                  if not assets.paths:
+                      raise RuntimeError("Nenhum arquivo principal encontrado")
+                  for path in assets.paths:
+                      target = urljoin(url, path)
+                      if urlsplit(target).netloc != urlsplit(url).netloc:
+                          raise RuntimeError("Arquivo principal fora da origem esperada")
+                      fetch(target)
+                  message = f"UP: pagina e {len(assets.paths)} arquivos JS/CSS acessiveis por HTTPS."
+                  print(message)
+                  with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+                      summary.write("## Disponibilidade: UP\n\n" + message + "\n")
+                  break
+              except Exception as error:
+                  print(f"Tentativa {attempt}/3: {type(error).__name__}: {error}")
+                  if attempt == 3:
+                      with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+                          summary.write("## Disponibilidade: DOWN\n\nPagina ou arquivo essencial indisponivel apos tres tentativas. Consulte os logs.\n")
+                      print("::error::DOWN: falha na verificacao de disponibilidade do MVP")
+                      raise SystemExit(1)
+                  time.sleep(5)
+          PY
